@@ -1,0 +1,52 @@
+#define RXD2 27 // Pinul RX (unde intra TX de la SIM900)
+#define TXD2 14 // Pinul TX (unde intra RX de la SIM900)
+
+void setup() {
+  Serial.begin(115200);
+  // Folosim viteza de 9600 care a confirmat "OK" anterior
+  Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2); 
+  
+  Serial.println("Initializare... asteptam 5 secunde pentru retea.");
+  delay(5000); 
+
+  trimiteSMS();
+}
+
+void trimiteSMS() {
+  Serial.println("Incepem procedura de trimitere SMS...");
+
+  // 1. Setam modul text
+  Serial2.println("AT+CMGF=1");
+  delay(1000);
+  afiseazaRaspuns();
+
+  // 2. Setam numarul de telefon (MODIFICA AICI!)
+  Serial2.println("AT+CMGS=\"+40760122XXX\""); 
+  delay(1000);
+  afiseazaRaspuns();
+
+  // 3. Scriem mesajul
+  Serial2.print("Salut! TEST");
+  delay(500);
+
+  // 4. Trimitem caracterul special Ctrl+Z (ASCII 26)
+  // Acesta este semnalul care spune modemului: "Gata, trimite acum!"
+  Serial2.write(26); 
+  
+  Serial.println("Comanda Ctrl+Z trimisa. Asteptam confirmarea...");
+  delay(5000);
+  afiseazaRaspuns();
+}
+
+void afiseazaRaspuns() {
+  while (Serial2.available()) {
+    char c = Serial2.read();
+    Serial.write(c);
+  }
+}
+
+void loop() {
+  // Dupa ce a trimis in setup(), lasam loop gol sau doar pentru debug manual
+  if (Serial.available()) Serial2.write(Serial.read());
+  if (Serial2.available()) Serial.write(Serial2.read());
+}

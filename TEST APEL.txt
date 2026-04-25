@@ -1,0 +1,54 @@
+#define RXD2 27
+#define TXD2 14
+
+// MODIFICA AICI numarul tau
+const String numarTelefon = "+40760122XXX"; 
+
+void setup() {
+  Serial.begin(115200);
+  Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
+  
+  Serial.println("Initializare modul pentru apel...");
+  delay(3000); // Asteptam sa fie gata
+
+  efectueazaApel();
+}
+
+void efectueazaApel() {
+  Serial.print("Apelez numarul: ");
+  Serial.println(numarTelefon);
+
+  // Comanda ATD urmeaza formatul: ATD+407xxxxxxx;
+  Serial2.print("ATD");
+  Serial2.print(numarTelefon);
+  Serial2.println(";"); 
+
+  // Asteptam sa sune timp de 15 secunde
+  // Poti monitoriza Serial Monitor sa vezi daca primesti "NO CARRIER" sau "BUSY"
+  for (int i = 15; i > 0; i--) {
+    Serial.print("Apel in curs... se va inchide in: ");
+    Serial.print(i);
+    Serial.println(" secunde");
+    delay(1000);
+    citesteRaspuns();
+  }
+
+  Serial.println("Inchid apelul...");
+  Serial2.println("ATH"); // Comanda Hook-up (inchide)
+  
+  delay(1000);
+  citesteRaspuns();
+}
+
+void citesteRaspuns() {
+  while (Serial2.available()) {
+    char c = Serial2.read();
+    Serial.write(c);
+  }
+}
+
+void loop() {
+  // Debug manual daca vrei sa mai trimiti comenzi din Serial Monitor
+  if (Serial.available()) Serial2.write(Serial.read());
+  if (Serial2.available()) Serial.write(Serial2.read());
+}
